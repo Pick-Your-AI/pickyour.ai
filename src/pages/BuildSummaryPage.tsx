@@ -250,25 +250,19 @@ export default function BuildSummaryPage() {
 
           <section aria-labelledby="freshness-heading" className="card p-4">
             <h2 id="freshness-heading" className="text-lg font-semibold">
-              Evidence freshness
+              Evidence dates
             </h2>
             <p className="mt-1 text-sm">
               Catalog {catalog.data.id} captured{' '}
               <time dateTime={staleness.catalog.checkedAt}>
-                {new Date(staleness.catalog.checkedAt).toLocaleDateString()}
-              </time>{' '}
-              ({staleness.catalog.ageDays} day{staleness.catalog.ageDays === 1 ? '' : 's'} ago) —{' '}
-              {staleness.catalog.state === 'stale' ? (
-                <strong className="text-amber-900 dark:text-amber-200">stale</strong>
-              ) : (
-                'fresh'
-              )}
-              .
+                {staleness.catalog.checkedAt.slice(0, 10)}
+              </time>
+              . Capture date does not establish currentness or independent verification.
             </p>
             {staleness.snapshotMismatch ? (
-              <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">
-                This build is locked to snapshot {build.locks.catalog_snapshot_id}, not the current
-                one.
+              <p className="mt-1 text-sm">
+                This build is locked to snapshot {build.locks.catalog_snapshot_id}; this site has{' '}
+                {catalog.data.id}. A different snapshot alone does not invalidate this build.
               </p>
             ) : null}
             {stalePicks.length ? (

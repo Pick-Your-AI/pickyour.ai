@@ -5,7 +5,6 @@ import { useCatalog } from '../../app/queries';
 import { ErrorState, Loading } from '../../components/feedback';
 import { PageHeader } from '../../components/layout';
 import { SyntheticBadge } from '../../components/status';
-import { freshness } from '../../domain/freshness';
 import { itemPath, itemSummary, kindPath } from '../../lib/catalog-view';
 
 export default function CatalogIndexPage() {
@@ -43,8 +42,10 @@ export default function CatalogIndexPage() {
               <span>
                 Snapshot <code className="font-mono">{catalog.data.id}</code> r
                 {catalog.data.revision} · {catalog.data.items.length} records · captured{' '}
-                {new Date(catalog.data.captured_at).toLocaleDateString()} (
-                {freshness(catalog.data.captured_at).state})
+                <time dateTime={catalog.data.captured_at}>
+                  {catalog.data.captured_at.slice(0, 10)}
+                </time>
+                . Capture date does not establish currentness or independent verification.
               </span>
               {catalog.data.items.some((i) => i.tags?.includes('synthetic')) ? (
                 <SyntheticBadge />

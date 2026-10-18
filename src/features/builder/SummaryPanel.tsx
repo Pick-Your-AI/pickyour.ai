@@ -205,20 +205,16 @@ export function SummaryPanel({
         ) : null}
       </div>
       <div>
-        <h3 className="font-semibold">Evidence freshness</h3>
+        <h3 className="font-semibold">Evidence dates</h3>
         <p className="text-xs">
-          Catalog {snapshot.id} captured {staleness.catalog.ageDays} day
-          {staleness.catalog.ageDays === 1 ? '' : 's'} ago —{' '}
-          {staleness.catalog.state === 'stale' ? (
-            <strong className="text-amber-900 dark:text-amber-200">stale</strong>
-          ) : (
-            'fresh'
-          )}
-          .
+          Catalog {snapshot.id} captured{' '}
+          <time dateTime={snapshot.captured_at}>{snapshot.captured_at.slice(0, 10)}</time>. Capture
+          date does not establish currentness or independent verification.
         </p>
         {staleness.snapshotMismatch ? (
-          <p className="text-xs text-amber-900 dark:text-amber-200">
-            Build is locked to snapshot {build.locks.catalog_snapshot_id}.
+          <p className="muted text-xs">
+            Build is locked to snapshot {build.locks.catalog_snapshot_id}. A different snapshot
+            alone does not invalidate this build.
           </p>
         ) : null}
         {staleness.driftedSelectionIds.length || staleness.missingSelectionIds.length ? (

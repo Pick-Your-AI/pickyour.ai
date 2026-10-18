@@ -16,7 +16,7 @@ import type {
   ResourceEstimate,
   Ruleset,
 } from '../contracts';
-import type { Freshness } from '../domain/freshness';
+import type { EvidenceDate } from '../domain/freshness';
 
 export interface CatalogRepository {
   /** The current (or a specific) immutable catalog snapshot. */
@@ -96,7 +96,7 @@ export interface ItemEvidence {
   provenance: Provenance[];
   /** Strongest verification status recorded for the item. */
   verification: Provenance['verification_status'];
-  freshness: Freshness;
+  freshness: EvidenceDate;
   synthetic: boolean;
 }
 

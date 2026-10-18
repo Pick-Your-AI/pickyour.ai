@@ -1,3 +1,4 @@
+import { evidenceDateLabel } from '../../domain/freshness';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router';
 import {
@@ -286,11 +287,16 @@ export default function ComponentDetailPage() {
             {ev.data ? (
               <>
                 <p className="mt-1">
-                  Verification: <strong>{ev.data.verification}</strong>
+                  Recorded provenance status: <strong>{ev.data.verification}</strong>
                 </p>
                 <p>
-                  Last checked {new Date(ev.data.freshness.checkedAt).toLocaleDateString()} (
-                  {ev.data.freshness.ageDays} days, {ev.data.freshness.state})
+                  {evidenceDateLabel(ev.data.freshness)}. This date does not establish currentness
+                  or independent verification.
+                </p>
+                <p className="mt-1 text-xs">
+                  Historical verified labels may record source checks only. Independent verification
+                  requires linked reproduction or corroboration; the recorded status alone is not
+                  proof.
                 </p>
                 <ul className="mt-2 space-y-1 text-xs">
                   {ev.data.provenance.map((p, i) => (

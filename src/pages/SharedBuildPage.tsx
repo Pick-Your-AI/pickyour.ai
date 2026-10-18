@@ -194,11 +194,8 @@ function SharedPreview({
           {warnings.join(' ')}
         </Notice>
       ) : null}
-      {staleness.snapshotMismatch || staleness.driftedSelectionIds.length || unresolved ? (
+      {staleness.driftedSelectionIds.length || unresolved ? (
         <Notice tone="warning" title="May not match this catalog.">
-          {staleness.snapshotMismatch
-            ? `This build is locked to catalog snapshot ${build.locks.catalog_snapshot_id}; this site has ${catalog.data.id}. `
-            : ''}
           {unresolved
             ? `${unresolved} selection${unresolved === 1 ? ' is' : 's are'} not in this catalog. `
             : ''}
@@ -209,11 +206,14 @@ function SharedPreview({
           author saw.
         </Notice>
       ) : null}
-      {staleness.catalog.state === 'stale' ? (
-        <Notice tone="warning">
-          Catalog evidence is {staleness.catalog.ageDays} days old (stale).
-        </Notice>
-      ) : null}
+      <p className="text-sm">
+        Catalog captured{' '}
+        <time dateTime={catalog.data.captured_at}>{catalog.data.captured_at.slice(0, 10)}</time>.
+        Capture date does not establish currentness or independent verification.
+        {staleness.snapshotMismatch
+          ? ` This build is locked to snapshot ${build.locks.catalog_snapshot_id}; this site has ${catalog.data.id}. A different snapshot alone does not invalidate this build.`
+          : ''}
+      </p>
 
       <section aria-labelledby="shared-meta-heading" className="card p-4">
         <h2 id="shared-meta-heading" className="text-lg font-semibold">

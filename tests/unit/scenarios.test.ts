@@ -241,15 +241,32 @@ describe('missing prices', () => {
   });
 });
 
-describe('stale catalog data', () => {
-  it('flags a snapshot older than the freshness window', () => {
-    const b = apiChat();
-    expect(buildStaleness(b, CATALOG, new Date('2026-10-20T00:00:00Z')).catalog.state).toBe(
-      'fresh',
-    );
-    expect(buildStaleness(b, CATALOG, new Date('2026-12-20T00:00:00Z')).catalog.state).toBe(
-      'stale',
-    );
+describe('catalog evidence dates and version matching', () => {
+  it('reports capture dates without an age-based validity verdict', () => {
+    const old = { ...CATALOG, captured_at: '2000-01-01T00:00:00Z' };
+    expect(buildStaleness(apiChat(), old).catalog).toEqual({
+      checkedAt: old.captured_at,
+      basis: 'capture',
+    });
+  });
+
+  it('a newer snapshot alone does not invalidate version-pinned selections', () => {
+    const build = apiChat();
+    const newer = {
+      ...CATALOG,
+      id: 'catalog.demo.newer',
+      revision: 2,
+      captured_at: '2030-01-01T00:00:00Z',
+    };
+    expect(buildStaleness(build, newer)).toMatchObject({
+      snapshotMismatch: true,
+      driftedSelectionIds: [],
+      missingSelectionIds: [],
+    });
+    const before = evaluateBuild({ build, catalog: CATALOG, ruleset: BASELINE_RULESET });
+    const after = evaluateBuild({ build, catalog: newer, ruleset: BASELINE_RULESET });
+    expect(after.result).toBe(before.result);
+    expect(after.findings).toEqual(before.findings);
   });
 
   it('detects selections pinned to a different item version and an older snapshot lock', () => {

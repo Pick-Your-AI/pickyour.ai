@@ -1,35 +1,30 @@
-/*
- * Freshness and staleness (provisional — the staleness policy is research issue #41). The preview
- * flags catalog snapshots and items older than STALE_AFTER_DAYS, selections pinned to an item
- * version that no longer matches the catalog, and builds locked to a different snapshot.
+/* Evidence dates are descriptive, never an expiry policy. Research #41 adopts no TTL:
+ * version-pinned facts do not expire; current-state facts retain their access dates.
  */
 import type { BuildSnapshot, CatalogItem, CatalogSnapshot } from '../contracts';
 
-export const STALE_AFTER_DAYS = 30;
-const DAY_MS = 86_400_000;
+export type EvidenceDate = { checkedAt: string; basis: 'source_check' | 'item_update' | 'capture' };
 
-export function ageDays(timestamp: string, now: Date = new Date()): number {
-  return Math.floor((now.getTime() - new Date(timestamp).getTime()) / DAY_MS);
+export function freshness(timestamp: string): EvidenceDate {
+  return { checkedAt: timestamp, basis: 'capture' };
 }
 
-export type Freshness = { state: 'fresh' | 'stale'; ageDays: number; checkedAt: string };
-
-export function freshness(timestamp: string, now: Date = new Date()): Freshness {
-  const age = ageDays(timestamp, now);
-  return {
-    state: age > STALE_AFTER_DAYS ? 'stale' : 'fresh',
-    ageDays: Math.max(0, age),
-    checkedAt: timestamp,
-  };
+export function itemFreshness(item: CatalogItem): EvidenceDate {
+  const latest = item.provenance
+    .map((p) => p.checked_at)
+    .sort()
+    .at(-1);
+  return { checkedAt: latest ?? item.updated_at, basis: latest ? 'source_check' : 'item_update' };
 }
 
-export function itemFreshness(item: CatalogItem, now?: Date): Freshness {
-  const latest =
-    item.provenance
-      .map((p) => p.checked_at)
-      .sort()
-      .at(-1) ?? item.updated_at;
-  return freshness(latest, now);
+export function evidenceDateLabel(date: EvidenceDate): string {
+  const label =
+    date.basis === 'source_check'
+      ? 'Latest recorded source check'
+      : date.basis === 'item_update'
+        ? 'Item updated'
+        : 'Catalog captured';
+  return `${label}: ${date.checkedAt.slice(0, 10)}`;
 }
 
 export interface BuildStaleness {
@@ -37,14 +32,10 @@ export interface BuildStaleness {
   /** Selections whose pinned catalog item is missing or has a different version. */
   driftedSelectionIds: string[];
   missingSelectionIds: string[];
-  catalog: Freshness;
+  catalog: EvidenceDate;
 }
 
-export function buildStaleness(
-  build: BuildSnapshot,
-  snapshot: CatalogSnapshot,
-  now?: Date,
-): BuildStaleness {
+export function buildStaleness(build: BuildSnapshot, snapshot: CatalogSnapshot): BuildStaleness {
   const byId = new Map(snapshot.items.map((i) => [i.id, i]));
   const drifted: string[] = [];
   const missing: string[] = [];
@@ -57,6 +48,6 @@ export function buildStaleness(
     snapshotMismatch: build.locks.catalog_snapshot_id !== snapshot.id,
     driftedSelectionIds: drifted,
     missingSelectionIds: missing,
-    catalog: freshness(snapshot.captured_at, now),
+    catalog: freshness(snapshot.captured_at),
   };
 }

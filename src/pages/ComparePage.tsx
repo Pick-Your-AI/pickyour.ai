@@ -18,7 +18,7 @@ import type {
 import { KIND_LABELS, TIERS, TIER_LABELS, kindsInTier } from '../contracts';
 import { primarySelection } from '../domain/activation';
 import { addOrReplace } from '../domain/build';
-import { itemFreshness } from '../domain/freshness';
+import { evidenceDateLabel, itemFreshness } from '../domain/freshness';
 import { useBuilder } from '../app/builder-context';
 import { useData } from '../app/data-context';
 import { useCatalog } from '../app/queries';
@@ -161,15 +161,15 @@ function ComponentCompare({ ids }: { ids: string[] }) {
     ),
     makeRow(
       'verification',
-      'Evidence verification',
+      'Recorded provenance status',
       items.map((i) => humanize(strongestVerification(i))),
     ),
     makeRow(
       'checked',
-      'Evidence last checked',
+      'Recorded evidence date',
       items.map((i) => {
         const f = itemFreshness(i);
-        return `${new Date(f.checkedAt).toLocaleDateString()} (${f.state === 'stale' ? 'stale' : 'fresh'})`;
+        return evidenceDateLabel(f);
       }),
     ),
   ];
@@ -336,7 +336,13 @@ function ComponentCompare({ ids }: { ids: string[] }) {
           </div>
           <p className="muted mt-3 text-xs">
             Specification values come from the catalog snapshot {catalog.data.id}. Demo values are
-            synthetic and are not measurements of real products.
+            synthetic and are not measurements of real products. Recorded provenance statuses do not
+            establish independent verification: historical verified labels may record source checks
+            only. Dates do not establish currentness. See the{' '}
+            <Link className="link" to="/methodology#evidence">
+              evidence policy
+            </Link>
+            .
           </p>
         </section>
       ) : null}

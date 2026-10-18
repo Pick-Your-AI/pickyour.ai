@@ -94,7 +94,7 @@ The endpoints the UI needs all exist in openapi v1, except these gaps. Each need
 
 ## 8. Unresolved research decisions that affect the UI
 
-- The staleness window (#41). The site uses a provisional 30 days.
+- Price-specific refresh and invalidation remain open (#41/#39). The accepted [#41 interface](https://github.com/Pick-Your-AI/pick-your-ai-research/issues/41#issuecomment-6242626857) and [#127 decision record](https://github.com/Pick-Your-AI/pick-your-ai-research/pull/127) adopt no TTL: version-pinned facts do not expire with age, current-state facts retain access dates, and a newer snapshot alone does not invalidate a build. The UI shows recorded dates without implying currentness or independent verification; selected-version mismatches and missing items remain visible. Historical `verified` values are preserved, but the label alone does not prove independent reproduction or corroboration.
 - The usage model for quotes, plus default currency and region (#39). The site's preview estimator is provisional.
 - Sharing and privacy semantics for saved builds (#42, blocked by #40). The site's share links are a local-only preview.
 - PR #72 reports that `rule.memory.framework.compatibility` blocks real frameworks.
