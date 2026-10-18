@@ -147,3 +147,38 @@ test('mobile: selection renders cards with text verdicts and a sticky summary ba
   await expect(page.getByText('Incompatible').first()).toBeVisible();
   await axe(page);
 });
+
+test('incomplete guidance survives choosing, reloading and sharing without blaming the chosen row', async ({
+  page,
+  context,
+}, info) => {
+  test.skip(
+    info.project.name.startsWith('mobile'),
+    'desktop row interactions; mobile banner covered by route smoke',
+  );
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/builder');
+  await expect(page.getByTestId('overall-status')).toContainText('0 of 4 required choices made');
+  await expect(page.getByTestId('overall-status')).toContainText('Provisional inference');
+  await page.goto('/catalog/workload?show=all');
+  await page
+    .getByRole('row', { name: /Demo Customer Support Chat/ })
+    .getByRole('button', { name: /^Add / })
+    .click();
+  await expect(page.getByTestId('overall-status')).toContainText('1 of 4 required choices made');
+  await expect(page.locator('[data-kind="workload"]')).not.toContainText('Fail');
+  await expect(page.getByText('rule.required.foundation', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId('overall-status')).toContainText('1 of 4 required choices made');
+  await page.goto('/catalog/deployment-mode?show=all');
+  await page
+    .getByRole('row', { name: /Managed API \(no self-hosting\)/ })
+    .getByRole('button', { name: /^Add / })
+    .click();
+  await expect(page.getByTestId('overall-status')).toContainText('2 of 4 required choices made');
+  await page.getByRole('button', { name: 'Copy share link' }).click();
+  await expect(page.getByText(/Share link copied/)).toBeVisible();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  await page.goto(url);
+  await expect(page.getByTestId('overall-status')).toContainText('2 of 4 required choices made');
+});

@@ -1,3 +1,5 @@
+import { useRuleset } from '../../app/queries';
+import { incompleteBuild } from './incomplete';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type {
@@ -17,16 +19,23 @@ import { costHeadline, nextAction, overall } from './analysis';
 export function OverallStrip({
   report,
   current,
+  build,
 }: {
   report: EvaluationReport | undefined;
   current: boolean;
+  build?: BuildSnapshot;
 }) {
+  const ruleset = useRuleset();
+  const incomplete = incompleteBuild(build, current ? report : undefined, ruleset.data);
   const o = overall(report);
   let text = 'Add components to start checking compatibility.';
   let cls = 'border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900';
   if (report && o) {
     const { failed, unknown, passed, skipped } = report.summary;
-    if (o === 'fail') {
+    if (incomplete) {
+      text = `${incomplete.chosen} of ${incomplete.total} required choices made. ${incomplete.remediation} Provisional inference from presence rules; contract findings remain unchanged.${unknown ? ` ${unknown} checks remain unknown.` : ''}`;
+      cls = 'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950';
+    } else if (o === 'fail') {
       text = `${failed} failing check${failed === 1 ? '' : 's'}${unknown ? ` and ${unknown} unknown` : ''} — this stack is not compatible as configured.`;
       cls = 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950';
     } else if (o === 'unknown') {
@@ -44,15 +53,17 @@ export function OverallStrip({
     >
       {o ? (
         <OutcomeBadge
-          outcome={o}
+          outcome={incomplete ? 'unknown' : o}
           label={
-            o === 'pass'
-              ? 'Compatible (rules pass)'
-              : o === 'fail'
-                ? 'Incompatible'
-                : o === 'unknown'
-                  ? 'Unknowns'
-                  : 'Not evaluated'
+            incomplete
+              ? 'Incomplete'
+              : o === 'pass'
+                ? 'Compatible (rules pass)'
+                : o === 'fail'
+                  ? 'Incompatible'
+                  : o === 'unknown'
+                    ? 'Unknowns'
+                    : 'Not evaluated'
           }
         />
       ) : null}
@@ -90,6 +101,8 @@ export function SummaryPanel({
   resources: ResourceEstimateResult | undefined;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const ruleset = useRuleset();
+  const incomplete = incompleteBuild(build, reportIsCurrent ? report : undefined, ruleset.data);
   const o = overall(report);
   const headline = costHeadline(costIsCurrent ? cost : undefined);
   const staleness = buildStaleness(build, snapshot);
@@ -245,7 +258,10 @@ export function SummaryPanel({
         >
           <span className="flex items-center gap-2">
             {o ? (
-              <OutcomeBadge outcome={o} />
+              <OutcomeBadge
+                outcome={incomplete ? 'unknown' : o}
+                label={incomplete ? 'Incomplete (provisional)' : undefined}
+              />
             ) : (
               <span className="muted text-sm">Not evaluated</span>
             )}

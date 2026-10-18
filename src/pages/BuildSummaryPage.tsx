@@ -146,7 +146,7 @@ export default function BuildSummaryPage() {
           </dl>
         </section>
 
-        <OverallStrip report={analysis.report} current={analysis.reportIsCurrent} />
+        <OverallStrip build={build} report={analysis.report} current={analysis.reportIsCurrent} />
         {analysis.evaluation.isError ? (
           <ErrorState
             error={analysis.evaluation.error}

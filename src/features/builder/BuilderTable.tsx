@@ -1,3 +1,5 @@
+import { useRuleset } from '../../app/queries';
+import { incompleteBuild, type IncompleteBuild } from './incomplete';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type {
@@ -50,16 +52,18 @@ function SelectionRow({
   report,
   reportIsCurrent,
   affected,
+  incomplete,
 }: {
   selection: Selection;
   item: CatalogItem | undefined;
   report: EvaluationReport | undefined;
   reportIsCurrent: boolean;
   affected: boolean;
+  incomplete: IncompleteBuild;
 }) {
   const { apply } = useBuilder();
   const [configuring, setConfiguring] = useState(false);
-  const outcome = selectionOutcome(report, selection.id);
+  const outcome = selectionOutcome(report, selection.id, incomplete?.ruleIds);
   const label = KIND_LABELS[selection.kind];
   const name = item?.name ?? selection.catalog_item_id;
   return (
@@ -183,6 +187,7 @@ function KindRow({
   report,
   reportIsCurrent,
   affectedKinds,
+  incomplete,
 }: {
   kind: ComponentKind;
   build: BuildSnapshot;
@@ -191,6 +196,7 @@ function KindRow({
   report: EvaluationReport | undefined;
   reportIsCurrent: boolean;
   affectedKinds: ReadonlySet<ComponentKind>;
+  incomplete: IncompleteBuild;
 }) {
   const selections = build.selections.filter((s) => s.kind === kind);
   const def = kindDef(kind);
@@ -213,6 +219,7 @@ function KindRow({
         {selections.map((s) => (
           <SelectionRow
             key={s.id}
+            incomplete={incomplete}
             selection={s}
             item={byId.get(s.catalog_item_id)}
             report={report}
@@ -262,6 +269,8 @@ export function BuilderTable({
   reportIsCurrent: boolean;
   affectedKinds: ReadonlySet<ComponentKind>;
 }) {
+  const ruleset = useRuleset();
+  const incomplete = incompleteBuild(build, reportIsCurrent ? report : undefined, ruleset.data);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   return (
     <div className="grid gap-4">
@@ -292,6 +301,7 @@ export function BuilderTable({
                 {kinds.map((k) => (
                   <KindRow
                     key={k.kind}
+                    incomplete={incomplete}
                     kind={k.kind}
                     build={build}
                     byId={byId}

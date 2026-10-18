@@ -37,11 +37,13 @@ export function findingsForSelection(
 export function selectionOutcome(
   report: EvaluationReport | undefined,
   selectionId: string,
+  presenceRuleIds?: ReadonlySet<string>,
 ): Outcome | null {
   const applicable = findingsForSelection(report, selectionId).filter(
-    (f) => f.outcome !== 'skipped',
+    (f) => f.outcome !== 'skipped' && !presenceRuleIds?.has(f.rule_id),
   );
-  return worstOutcome(applicable.map((f) => f.outcome));
+  const outcome = worstOutcome(applicable.map((f) => f.outcome));
+  return presenceRuleIds?.size && outcome !== 'fail' ? 'unknown' : outcome;
 }
 
 export function overall(report: EvaluationReport | undefined): Outcome | null {

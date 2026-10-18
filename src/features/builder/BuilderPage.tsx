@@ -93,7 +93,7 @@ export default function BuilderPage() {
           <div className="card p-4">
             <BuildToolbar key={build.id} build={build} byId={catalog.byId} />
           </div>
-          <OverallStrip report={analysis.report} current={analysis.reportIsCurrent} />
+          <OverallStrip build={build} report={analysis.report} current={analysis.reportIsCurrent} />
           <p className="sr-only" aria-live="polite" role="status">
             {announcement}
           </p>
