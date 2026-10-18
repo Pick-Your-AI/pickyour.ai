@@ -12,3 +12,6 @@ blob-report/
 *.tsbuildinfo
 .vite/
 _*.mjs
+lighthouse-report/
+test-results-visual/
+playwright-report-visual/

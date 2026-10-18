@@ -23,7 +23,53 @@ npm run build && npm run test:e2e
 npm run audit
 ```
 
-Not yet automated: visual regression snapshots and Lighthouse budgets.
+## Visual regression and Lighthouse gates
+
+`CI` requires the `visual-performance` job through `ci-required`. It checks
+six full-page desktop screenshots: `/`, `/builder`, and `/catalog/model`, each
+in light and dark themes. Baselines live in `tests/visual/baselines/`.
+The tests fix the clock, locale, timezone, viewport, reduced motion, and theme;
+wait for route content, network idle, and fonts; and mask only the changing build
+SHA. Fresh browser contexts keep saved drafts out of the baselines.
+
+The screenshot environment uses the lockfile-pinned Playwright Chromium and
+DejaVu Sans / DejaVu Sans Mono through the application's font variables. CI runs
+on `ubuntu-24.04` and explicitly installs `fonts-dejavu-core`. This normalizes
+system font selection without changing production CSS. Chromium LCD text rendering
+is disabled to avoid host-specific colored subpixel fringes. Other operating systems,
+font versions, and browser versions can still render differently. Review any
+runner-specific differences; do not raise tolerances to hide them. Pixel diffs
+have zero allowed differing pixels beyond Playwright's default per-pixel color
+threshold, and screenshots do not retry.
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+# Linux: install fonts-dejavu-core using your package manager.
+npm run build
+npm run test:visual
+# Only after inspecting an intentional UI change:
+npm run test:visual -- --update-snapshots
+npm run test:visual
+# Lighthouse uses the same pinned Chromium automatically.
+npm run test:lighthouse
+```
+
+Visual tests serve the production build on port 4318; Lighthouse uses port 4319.
+Lighthouse runs default mobile emulation and simulated throttling three times
+per route. The median performance score must be at least 90; accessibility must
+be 100 on **every** run. There are no ignored audits or score rounding overrides.
+Reports, screenshots, traces, and diffs are retained as the
+`visual-performance-reports` CI artifact for 14 days, including failed runs.
+Lighthouse reports remain local/CI artifacts; they are not uploaded to a public
+report service. Scores measure fixture-mode routes, not backend latency or all
+possible builder states.
+
+Baselines must be visually reviewed along with the source changes. Generate them
+on Linux with the pinned browser and the documented fonts, then verify a second
+run without updating snapshots. CI remains the authority for runner parity.
+
+## Historical manual evidence
 
 Manual Lighthouse 12 run on 2026-10-16 against `vite preview` (headless Chromium, mobile emulation with default throttling):
 
