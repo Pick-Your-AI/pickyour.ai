@@ -48,6 +48,12 @@ The contract is owned by the research repository. To adopt a new upstream versio
 
 See `docs/DATA_INTEGRATION.md` for the full process.
 
+## Toolchain major upgrades
+
+[Issue #20](https://github.com/Pick-Your-AI/pickyour.ai/issues/20) tracks deliberate evaluation of major toolchain upgrades. The earlier Dependabot PRs [#3](https://github.com/Pick-Your-AI/pickyour.ai/pull/3), [#4](https://github.com/Pick-Your-AI/pickyour.ai/pull/4), [#5](https://github.com/Pick-Your-AI/pickyour.ai/pull/5) and [#6](https://github.com/Pick-Your-AI/pickyour.ai/pull/6) were closed because they targeted the pre-bootstrap tree; closing them did not establish upgrade compatibility. [PR #28](https://github.com/Pick-Your-AI/pickyour.ai/pull/28) added the current Dependabot major-version ignores for TypeScript, ESLint, `@eslint/js` and `@types/node`. Node types follow the Node 22 runtime baseline.
+
+Before adopting a major, record its migration requirements and compatibility with the actual runtime, TypeScript/ESLint configuration, plugins and generated contract tooling. Test the proposed lockfile with the full `AGENTS.md` checks, document failures or deferral reasons in #20, and submit a focused PR. The ignore rules are a deferral mechanism, not evidence that the evaluation is complete.
+
 ## Commit messages
 
 Use imperative, conventional-style subjects (`feat: …`, `fix: …`, `docs: …`, `ci: …`, `chore: …`).
